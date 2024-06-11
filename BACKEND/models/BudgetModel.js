@@ -7,17 +7,12 @@ const budgetSchema = new mongoose.Schema(
       required: true,
     },
     month: {
-        type: Date,
-        required: true,
-      },
+      type: Date,
+      required: true,
+    },
     user_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
-    },
-    category_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
       required: true,
     },
   },
@@ -25,7 +20,6 @@ const budgetSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
 
 const Budget = mongoose.model("Budget", budgetSchema);
 

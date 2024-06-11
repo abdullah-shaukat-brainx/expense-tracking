@@ -19,6 +19,15 @@ const categorySchema = new mongoose.Schema(
 
 categorySchema.set("timestamps", { createdAt: true, updatedAt: true });
 
+categorySchema.pre('remove', async function (next) {
+  try {
+    await Expense.deleteMany({ category_id: this._id }); //Remove all related expenses
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
 const Category = mongoose.model("Category", categorySchema);
 
 module.exports = Category;

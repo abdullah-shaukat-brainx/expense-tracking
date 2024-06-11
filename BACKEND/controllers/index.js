@@ -1,4 +1,6 @@
 module.exports = {
     userController: require("./userController"),
-    // todoController: require("./todoController"),
+    categoryController: require("./categoryController"),
+    expenseController: require("./expenseController"),
+    budgetController: require("./budgetController"),
   };
