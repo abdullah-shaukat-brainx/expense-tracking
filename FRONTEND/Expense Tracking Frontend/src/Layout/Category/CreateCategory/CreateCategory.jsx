@@ -1,0 +1,65 @@
+import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import { Form, Button, Container, Row, Col } from "react-bootstrap";
+import { addCategory } from "../../../Services/categoryServices";
+import { useNavigate } from "react-router-dom";
+
+function CreateCategory() {
+  const {
+    handleSubmit,
+    register,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      name: "",
+    },
+  });
+  const navigate = useNavigate();
+  const onSubmit = (data) => {
+    addCategory({ name: data.name })
+      .then((response) => {
+        toast.success("Category added successfully.");
+        navigate("/category");
+      })
+      .catch((error) => {
+        toast.error(error?.response?.data?.error || "An error occurred.");
+        reset();
+      });
+  };
+
+  return (
+    <Container className="mt-5">
+      <Row className="justify-content-center mb-4">
+        <Col xs={12} md={6}>
+          <h2 className="text-center">Create Category</h2>
+        </Col>
+      </Row>
+      <Row className="justify-content-center">
+        <Col xs={12} md={6}>
+          <Form onSubmit={handleSubmit(onSubmit)}>
+            <Form.Group controlId="name">
+              <Form.Label>Category</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter Category name"
+                {...register("name", {
+                  required: "Category name is required",
+                })}
+              />
+              {errors.name && (
+                <span className="text-danger">{errors.name.message}</span>
+              )}
+            </Form.Group>
+
+            <Button variant="primary" type="submit" className="mt-3">
+              Create
+            </Button>
+          </Form>
+        </Col>
+      </Row>
+    </Container>
+  );
+}
+
+export default CreateCategory;
