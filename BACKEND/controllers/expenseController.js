@@ -53,6 +53,7 @@ const getExpenses = async (req, res) => {
   const skip = (page - 1) * limit;
   const startDate = req?.query?.startDate;
   const endDate = req?.query?.endDate;
+  const searchQuery = req?.query?.searchQuery;
 
   let matchCriteria = {
     user_id: new mongoose.Types.ObjectId(req.userId),
@@ -62,6 +63,13 @@ const getExpenses = async (req, res) => {
     matchCriteria.category_id = new mongoose.Types.ObjectId(
       req.query.category_id
     );
+  }
+
+  if (searchQuery) {
+    matchCriteria.description = {
+      $regex: req.query.searchQuery,
+      $options: "i",
+    };
   }
 
   if (startDate && endDate) {

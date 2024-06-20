@@ -1,5 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
+import { useState, useEffect } from "react";
 
 export const isAuthenticated = () => {
   const token = localStorage.getItem("access_token");
@@ -23,3 +24,20 @@ export const isAuthenticated = () => {
     return false;
   }
 };
+
+// Custom hook for debounce
+export function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}

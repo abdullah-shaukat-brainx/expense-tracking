@@ -6,6 +6,7 @@ import { useNavigate } from "react-router";
 import { useSearchParams } from "react-router-dom";
 import CategoryItem from "../CategoryItem/CategoryItem";
 import { Table } from "react-bootstrap";
+import { useDebounce } from "../../../Utils";
 
 function CategoryHome() {
   const navigate = useNavigate();
@@ -19,23 +20,7 @@ function CategoryHome() {
     setRefresh(!refresh);
   };
 
-  const useDebouncedValue = (inputValue, delay) => {
-    const [debouncedValue, setDebouncedValue] = useState(inputValue);
-
-    useEffect(() => {
-      const handler = setTimeout(() => {
-        setDebouncedValue(inputValue);
-      }, delay);
-
-      return () => {
-        clearTimeout(handler);
-      };
-    }, [inputValue, delay]);
-
-    return debouncedValue;
-  };
-
-  const debouncedSearchQuery = useDebouncedValue(searchQuery, 500);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   const handleChange = (e) => {
     setSearchQuery(e.target.value);

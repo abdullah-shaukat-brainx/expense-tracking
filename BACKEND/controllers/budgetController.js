@@ -47,11 +47,22 @@ const getBudgets = async (req, res) => {
   const skip = (page - 1) * limit;
 
   try {
+    let matchQuery = {
+      user_id: new mongoose.Types.ObjectId(req.userId),
+    };
+
+    if (req?.query?.searchQuery) {
+      // Handle numeric search for amount
+      const searchAmount = parseFloat(req.query.searchQuery);
+      if (!isNaN(searchAmount)) {
+        matchQuery.amount = searchAmount;
+      }
+      // Handle other types of search queries for different fields if needed
+    }
+
     const result = await budgetServices.aggregateBudgetQuery([
       {
-        $match: {
-          user_id: new mongoose.Types.ObjectId(req.userId),
-        },
+        $match: matchQuery,
       },
       {
         $facet: {

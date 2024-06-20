@@ -6,8 +6,9 @@ import {
 } from "./APIsServices";
 
 export const getBudgets = async (data) => {
+  const { limit, page, searchQuery } = data;
   return new Promise((resolve, reject) => {
-    authorizedGetCall(`/budget?limit=${data.limit}&page=${data.page}`)
+    authorizedGetCall(`/budget?limit=${limit}&page=${page}&searchQuery=${searchQuery}`)
       .then((data) => {
         resolve(data);
       })

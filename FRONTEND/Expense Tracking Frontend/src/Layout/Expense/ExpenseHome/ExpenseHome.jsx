@@ -8,6 +8,7 @@ import { useSearchParams } from "react-router-dom";
 import ExpenseItem from "../ExpenseItem/ExpenseItem";
 import { Table } from "react-bootstrap";
 import { toast } from "react-toastify";
+import { useDebounce } from "../../../Utils";
 
 function getFirstDateOfMonth() {
   const currentDate = new Date();
@@ -34,6 +35,9 @@ function ExpenseHome() {
   const [endDate, setEndDate] = useState(getLastDateOfMonth());
   const [totalPagesCount, setTotalPagesCount] = useState(1);
   const [refresh, setRefresh] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const debouncedSearchQuery = useDebounce(searchQuery.trim(), 300);
 
   const updateRefresh = () => {
     setRefresh(!refresh);
@@ -78,6 +82,7 @@ function ExpenseHome() {
         endDate,
         page,
         limit,
+        searchQuery: debouncedSearchQuery,
       });
       setTotalPagesCount(parseInt(response?.data?.count));
       setExpenses(response?.data?.expenses || []);
@@ -108,6 +113,7 @@ function ExpenseHome() {
     selectedCategory,
     startDate,
     endDate,
+    debouncedSearchQuery,
   ]);
 
   useEffect(() => {
@@ -122,6 +128,11 @@ function ExpenseHome() {
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
+  };
+
+  const handleSearchQueryChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
   };
 
   return (
@@ -163,6 +174,7 @@ function ExpenseHome() {
                 ))}
               </Form.Control>
             </div>
+
             <div className="mt-3 me-2">
               <Form.Label>Start Date</Form.Label>
               <Form.Control
@@ -179,6 +191,14 @@ function ExpenseHome() {
                 placeholder="End Date"
                 value={endDate}
                 onChange={handleEndDateChange}
+              />
+            </div>
+            <div className="mt-3">
+              <Form.Label>Search</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Search Description here"
+                onChange={handleSearchQueryChange}
               />
             </div>
           </div>
