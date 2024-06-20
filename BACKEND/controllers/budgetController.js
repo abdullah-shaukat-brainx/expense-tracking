@@ -14,6 +14,7 @@ const addBudget = async (req, res) => {
     const budgetDate = new Date(Date.UTC(year, month - 1));
 
     const findBudget = await budgetServices.findBudget({
+      user_id: new mongoose.Types.ObjectId(req.userId),
       month: budgetDate,
     });
 
@@ -81,7 +82,6 @@ const getBudgets = async (req, res) => {
         },
       },
     ]);
-
     return res.status(200).json({
       data: {
         budgets: result[0]?.paginatedResults || [], // Extract paginated results

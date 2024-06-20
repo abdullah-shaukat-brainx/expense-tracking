@@ -9,46 +9,48 @@ import {
   Table,
 } from "react-bootstrap";
 import { useNavigate } from "react-router";
+import { useSearchParams } from "react-router-dom";
 import BudgetItem from "../BudgetItem/BudgetItem";
 import Pagination from "@mui/material/Pagination";
-import { toast } from "react-toastify";
 import { getBudgets } from "../../../Services/budgetServices";
 import { useDebounce } from "../../../Utils";
 
 function BudgetHome() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [spinner, setSpinner] = useState(false);
   const [budgets, setBudgets] = useState([]);
-  const [refresh, setRefresh] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [limit, setLimit] = useState(5);
-  const [totalPagesCount, setTotalPagesCount] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Debounce the search query with 300ms delay
-  const debouncedSearchQuery = useDebounce(searchQuery.trim(), 300);
-
+  const [totalPagesCount, setTotalPagesCount] = useState(1);
+  const [refresh, setRefresh] = useState(false);
   const updateRefresh = () => {
     setRefresh(!refresh);
   };
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
+  const handleChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(searchParams?.get("page")) || 1
+  );
+  const [limit, setLimit] = useState(parseInt(searchParams?.get("limit")) || 5);
 
   const fetchBudgets = async (page, limit) => {
     setSpinner(true);
     try {
       const response = await getBudgets({
-        currentPage: page,
+        searchQuery: searchQuery.trim(),
+        page: page,
         limit: limit,
-        searchQuery: debouncedSearchQuery, // Use debounced search query
       });
-      if (response?.data?.budgets) {
-        setBudgets(response?.data?.budgets);
-        setTotalPagesCount(parseInt(response?.data?.totalPages));
-      } else {
-        setBudgets([]);
-      }
+      setTotalPagesCount(parseInt(response?.data?.totalPages)); // Ensure this line accesses the correct property
+      setBudgets(response?.data?.budgets || []);
     } catch (error) {
       console.error("Error fetching budgets:", error);
-      setBudgets([]);
     } finally {
       setSpinner(false);
     }
@@ -56,20 +58,14 @@ function BudgetHome() {
 
   useEffect(() => {
     fetchBudgets(currentPage, limit);
-  }, [refresh, currentPage, limit, debouncedSearchQuery]); // Include debouncedSearchQuery in dependencies
+  }, [debouncedSearchQuery, currentPage, limit, searchParams, refresh]);
+
+  useEffect(() => {
+    setSearchParams({ page: currentPage, limit: limit });
+  }, [currentPage, limit]);
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
-  };
-
-  const handleLimitChange = (e) => {
-    setLimit(parseInt(e.target.value));
-    setCurrentPage(1);
-  };
-
-  const handleChange = (e) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
   };
 
   return (
@@ -152,7 +148,10 @@ function BudgetHome() {
                     <select
                       name="limit"
                       value={limit}
-                      onChange={handleLimitChange}
+                      onChange={(e) => {
+                        setLimit(parseInt(e.target.value));
+                        setCurrentPage(1);
+                      }}
                     >
                       <option value="5">5</option>
                       <option value="10">10</option>

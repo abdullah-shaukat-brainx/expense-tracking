@@ -7,7 +7,10 @@ const addCategory = async (req, res) => {
     if (!name)
       return res.status(422).send({ error: "Name field cant be empty!" });
 
-    const category = await categoryServices.findCategory({ name: name });
+    const category = await categoryServices.findCategory({
+      user_id: new mongoose.Types.ObjectId(req.userId),
+      name: name,
+    });
     if (category)
       return res
         .status(400)
