@@ -18,7 +18,7 @@ export const isAuthenticated = () => {
 
     return true;
   } catch (error) {
-    console.error("Error decoding token:", error);
+    localStorage.clear();
     toast.error("Logging out User!");
     return false;
   }
