@@ -11,7 +11,7 @@ const addBudget = async (req, res) => {
         .status(422)
         .send({ error: "Amount should be a positive number!" });
 
-    const budgetDate = new Date(year, month);
+    const budgetDate = new Date(Date.UTC(year, month - 1));
 
     const findBudget = await budgetServices.findBudget({
       month: budgetDate,
@@ -42,19 +42,47 @@ const addBudget = async (req, res) => {
 };
 
 const getBudgets = async (req, res) => {
+  const page = parseInt(req?.query?.page) || 1;
+  const limit = parseInt(req?.query?.limit) || 5;
+  const skip = (page - 1) * limit;
+
   try {
-    const result = await budgetServices.findAllBudgets({
-      user_id: req.userId,
-    });
+    const result = await budgetServices.aggregateBudgetQuery([
+      {
+        $match: {
+          user_id: new mongoose.Types.ObjectId(req.userId),
+        },
+      },
+      {
+        $facet: {
+          totalCount: [{ $count: "count" }],
+          paginatedResults: [
+            { $sort: { month: -1 } }, // Sorting by month descending
+            { $skip: skip }, // Pagination: skip records based on page and limit
+            { $limit: limit }, // Pagination: limit number of records per page
+          ],
+        },
+      },
+      {
+        $project: {
+          totalCount: { $arrayElemAt: ["$totalCount.count", 0] },
+          paginatedResults: 1, // Include paginated results in output
+        },
+      },
+    ]);
+
     return res.status(200).json({
       data: {
-        budgets: result || [],
+        budgets: result[0]?.paginatedResults || [], // Extract paginated results
+        totalPages: Math.ceil(result[0]?.totalCount / limit) || 1, // Calculate total pages
       },
       message: `Budgets for ${req.userEmail} retrieved successfully`,
     });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).send({ error: "Unable to retrieve Budgets." });
+  } catch (error) {
+    console.error("Error fetching budgets:", error);
+    return res.status(500).json({
+      error: "Internal server error",
+    });
   }
 };
 
@@ -114,7 +142,10 @@ const updateBudget = async (req, res) => {
     if (!budgetID || !amount)
       return res.status(500).send({ error: "Budget information missing." });
 
-    // const budgetDate = new Date(year, month);
+    if (Math.floor(amount) <= 0)
+      return res
+        .status(422)
+        .send({ error: "Amount should be a positive number!" });
 
     const updatedBudget = await budgetServices.findAndUpdateBudget(
       { _id: new mongoose.Types.ObjectId(budgetID) },

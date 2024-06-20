@@ -9,6 +9,10 @@ const findExpenses = async (condition, limit, skip) => {
   return await Expense.find(condition).skip(skip).limit(limit);
 };
 
+const findOneExpense = async (condition) => {
+  return await Expense.find(condition);
+};
+
 const findAndUpdateExpense = async (condition, data) => {
   return await Expense.findOneAndUpdate(condition, data);
 };
@@ -24,6 +28,7 @@ const aggregateExpenseQuery = async (query) => {
 module.exports = {
   addExpense,
   findExpenses,
+  findOneExpense,
   findAndUpdateExpense,
   findAndUpdateExpense,
   findAndDeleteExpense,

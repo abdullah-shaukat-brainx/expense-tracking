@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
-import { addBudget } from "../../../Services/budgetServices"; // Assuming you have a budget service
+import { addBudget } from "../../../Services/budgetServices";
 import { useNavigate } from "react-router-dom";
 
 function CreateBudget() {
@@ -105,7 +105,11 @@ function CreateBudget() {
               <Form.Control
                 type="number"
                 placeholder="Enter Amount"
-                {...register("amount", { required: "Amount is required" })}
+                {...register("amount", {
+                  required: "Amount is required",
+                  validate: (value) =>
+                    value > 0 || "Amount must be greater than zero",
+                })}
               />
               {errors.amount && (
                 <span className="text-danger">{errors.amount.message}</span>

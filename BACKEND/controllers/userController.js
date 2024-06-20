@@ -83,12 +83,20 @@ const login = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { name, password } = req?.body;
+    const { name, currentPassword, password } = req?.body;
 
-    if (!name || !password)
+    if (!name || !currentPassword || !password)
       return res.status(422).send("Cant accept empty fields");
     if (!utilServices.isValidPasswordFormat(password))
       return res.status(422).send("Incorrect Password Format");
+
+    const currentUser = await userServices.findUser({ _id: req.userId });
+    const matchPassword = await bcrypt.compare(
+      currentPassword,
+      currentUser.password
+    );
+    if (!matchPassword)
+      return res.status(404).send({ error: "Password does not match!" });
 
     const user = await userServices.updateUser(
       { _id: req.userId },
@@ -101,7 +109,10 @@ const updateProfile = async (req, res) => {
     }
 
     return res.status(200).json({
-      message: `User Profile Successfully Updated.`,
+      data: {
+        user: user,
+        message: `User Profile Successfully Updated.`,
+      },
     });
   } catch (e) {
     console.log(e);
@@ -141,8 +152,7 @@ const forgetPassword = async (req, res) => {
     );
 
     return res.status(200).json({
-      message:
-        "Check inbox for reset link.",
+      message: "Check inbox for reset link.",
     });
   } catch (e) {
     console.log(e);

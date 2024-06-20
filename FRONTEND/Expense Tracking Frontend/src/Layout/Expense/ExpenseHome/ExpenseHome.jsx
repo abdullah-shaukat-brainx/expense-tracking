@@ -5,7 +5,23 @@ import { Spinner, Form, Button, Container, Row, Col } from "react-bootstrap";
 import Pagination from "@mui/material/Pagination";
 import { useNavigate } from "react-router";
 import { useSearchParams } from "react-router-dom";
-import ExpenseItem from "../ExpenseItem/ExpenseItem"; // Ensure correct path to ExpenseItem
+import ExpenseItem from "../ExpenseItem/ExpenseItem";
+import { Table } from "react-bootstrap";
+import { toast } from "react-toastify";
+
+function getFirstDateOfMonth() {
+  const currentDate = new Date();
+  const year = currentDate.getUTCFullYear();
+  const month = currentDate.getUTCMonth();
+  return new Date(Date.UTC(year, month, 1)).toISOString().split("T")[0];
+}
+
+function getLastDateOfMonth() {
+  const currentDate = new Date();
+  const year = currentDate.getUTCFullYear();
+  const month = currentDate.getUTCMonth() + 1; // Month index is zero-based
+  return new Date(Date.UTC(year, month, 0)).toISOString().split("T")[0];
+}
 
 function ExpenseHome() {
   const navigate = useNavigate();
@@ -14,8 +30,8 @@ function ExpenseHome() {
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState(getFirstDateOfMonth());
+  const [endDate, setEndDate] = useState(getLastDateOfMonth());
   const [totalPagesCount, setTotalPagesCount] = useState(1);
   const [refresh, setRefresh] = useState(false);
 
@@ -29,12 +45,22 @@ function ExpenseHome() {
   };
 
   const handleStartDateChange = (e) => {
-    setStartDate(e.target.value);
+    const newStartDate = e.target.value;
+    if (endDate && new Date(newStartDate) > new Date(endDate)) {
+      toast.error("Start date cannot be greater than end date");
+      return;
+    }
+    setStartDate(newStartDate);
     setCurrentPage(1);
   };
 
   const handleEndDateChange = (e) => {
-    setEndDate(e.target.value);
+    const newEndDate = e.target.value;
+    if (startDate && new Date(newEndDate) < new Date(startDate)) {
+      toast.error("End date cannot be less than start date");
+      return;
+    }
+    setEndDate(newEndDate);
     setCurrentPage(1);
   };
 
@@ -92,7 +118,7 @@ function ExpenseHome() {
       endDate: endDate,
       selectedCategory: selectedCategory,
     });
-  }, [currentPage, limit]);
+  }, [currentPage, limit, startDate, endDate]);
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
@@ -108,9 +134,9 @@ function ExpenseHome() {
           </h2>
         </Col>
       </Row>
-      <Row className="justify-content-center">
-        <Col xs={6} md={3} className="d-flex flex-row justify-content-center">
-          <Form.Group controlId="search">
+      <div>
+        <Form.Group>
+          <div className="d-flex justify-content-center">
             <Button
               variant="success"
               className="mt-3"
@@ -120,36 +146,44 @@ function ExpenseHome() {
             >
               Click me to add a new Expense
             </Button>
-            <Form.Control
-              as="select"
-              value={selectedCategory}
-              onChange={handleCategoryChange}
-              className="mt-3"
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {category.name}
-                </option>
-              ))}
-            </Form.Control>
-            <Form.Control
-              type="date"
-              placeholder="Start Date"
-              value={startDate}
-              onChange={handleStartDateChange}
-              className="mt-3"
-            />
-            <Form.Control
-              type="date"
-              placeholder="End Date"
-              value={endDate}
-              onChange={handleEndDateChange}
-              className="mt-3"
-            />
-          </Form.Group>
-        </Col>
-      </Row>
+          </div>
+          <div className="d-flex flex-row justify-content-center">
+            <div className="mt-3 me-2">
+              <Form.Label>Category</Form.Label>
+              <Form.Control
+                as="select"
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+              >
+                <option value="">All Categories</option>
+                {categories.map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
+              </Form.Control>
+            </div>
+            <div className="mt-3 me-2">
+              <Form.Label>Start Date</Form.Label>
+              <Form.Control
+                type="date"
+                placeholder="Start Date"
+                value={startDate}
+                onChange={handleStartDateChange}
+              />
+            </div>
+            <div className="mt-3">
+              <Form.Label>End Date</Form.Label>
+              <Form.Control
+                type="date"
+                placeholder="End Date"
+                value={endDate}
+                onChange={handleEndDateChange}
+              />
+            </div>
+          </div>
+        </Form.Group>
+      </div>
       {expenses.length === 0 ? (
         <h2>No expenses to show.</h2>
       ) : (
@@ -158,13 +192,20 @@ function ExpenseHome() {
             <Container>
               <div className="container expenses-card">
                 {spinner && <Spinner animation="border" />}
-                <ul className="list-group">
-                  {expenses.map((expense) => (
-                    <li
-                      key={expense._id}
-                      className="list-group-item"
-                    >
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Amount</th>
+                      <th>Description</th>
+                      <th>Category</th>
+                      <th>Controls</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {expenses.map((expense) => (
                       <ExpenseItem
+                        key={expense._id}
                         date={expense.date}
                         amount={expense.amount}
                         description={expense.description}
@@ -176,9 +217,9 @@ function ExpenseHome() {
                         id={expense._id}
                         updateRefresh={updateRefresh}
                       />
-                    </li>
-                  ))}
-                </ul>
+                    ))}
+                  </tbody>
+                </Table>
               </div>
             </Container>
           </Row>

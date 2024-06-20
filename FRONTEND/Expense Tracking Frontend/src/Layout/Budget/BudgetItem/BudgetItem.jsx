@@ -6,8 +6,7 @@ import "react-confirm-alert/src/react-confirm-alert.css";
 import "react-toastify/dist/ReactToastify.css";
 import { deleteBudget } from "../../../Services/budgetServices"; // Assuming you have a budget service
 import { useNavigate } from "react-router-dom";
-import { Row, Col } from "react-bootstrap";
-
+import moment from "moment";
 function BudgetItem({ month, year, amount, id, updateRefresh }) {
   const options = {
     title: "Delete Budget",
@@ -50,14 +49,10 @@ function BudgetItem({ month, year, amount, id, updateRefresh }) {
   };
 
   return (
-    <Row className="border p-3 mb-3 d-flex flex-row text-align-center">
-      <Col xs={12} md={5}>
-        <span>{month}</span>
-      </Col>
-      <Col xs={12} md={5}>
-        <span>{amount}</span>
-      </Col>
-      <Col xs={12} md={2} className="mt-3 mt-lg-0 d-flex justify-content-end">
+    <tr>
+      <td>{moment(month).format("MMMM YYYY")}</td>
+      <td>{amount}</td>
+      <td>
         <Button
           variant="danger"
           size="sm"
@@ -69,8 +64,8 @@ function BudgetItem({ month, year, amount, id, updateRefresh }) {
         <Button variant="warning" size="sm" onClick={handleUpdate}>
           <i className="bi bi-pencil"></i>
         </Button>
-      </Col>
-    </Row>
+      </td>
+    </tr>
   );
 }
 

@@ -35,6 +35,7 @@ const getAllCategories = async (req, res) => {
   try {
     const result = await categoryServices.findCategories({
       user_id: new mongoose.Types.ObjectId(req.userId),
+      is_deleted: false,
     });
 
     return res.status(200).json({
@@ -49,7 +50,8 @@ const getAllCategories = async (req, res) => {
   }
 };
 
-const getCategories = async (req, res) => { //Move large query to Srvices
+const getCategories = async (req, res) => {
+  //Move large query to Services
   const page = parseInt(req?.query?.page) || 1;
   const limit = parseInt(req?.query?.limit) || 5;
   const skip = (page - 1) * limit;
@@ -57,6 +59,7 @@ const getCategories = async (req, res) => { //Move large query to Srvices
     const result = await categoryServices.aggregateCategoryQuery([
       {
         $match: {
+          is_deleted: false,
           user_id: new mongoose.Types.ObjectId(req.userId),
           ...(req?.query?.searchQuery && {
             name: { $regex: req.query.searchQuery, $options: "i" },

@@ -31,7 +31,7 @@ function LogIn() {
         localStorage.setItem("access_token", data?.access_token);
         localStorage.setItem("user_details", JSON.stringify(data?.data?.User));
         toast.success("Logged in Successful.");
-        navigate("/expense");
+        navigate("/dashboard");
       })
       .catch((error) => {
         toast.error(error?.response?.data?.error);

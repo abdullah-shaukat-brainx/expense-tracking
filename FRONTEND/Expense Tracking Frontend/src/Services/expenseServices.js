@@ -19,6 +19,19 @@ export const getExpenses = async (data) => {
   });
 };
 
+export const getOneExpenseDetails = async (data) => {
+  const { id } = data;
+  return new Promise((resolve, reject) => {
+    authorizedGetCall(`/expense/${id}`)
+      .then((data) => {
+        resolve(data);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
 export const addExpense = async (data) => {
   return new Promise((resolve, reject) => {
     authorizedPostCall("/expense", data)

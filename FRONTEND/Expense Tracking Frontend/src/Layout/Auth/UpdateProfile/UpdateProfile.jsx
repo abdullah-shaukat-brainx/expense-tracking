@@ -20,22 +20,27 @@ function UpdateProfile() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
 
   const navigate = useNavigate();
   const onSubmit = (data) => {
-    updateProfile(data.name, data.password)
+    updateProfile(data)
       .then((data) => {
+        localStorage.setItem("user_details", JSON.stringify(data?.data?.user));
         toast.success("Profile Updated Successfully.");
-        // navigate("/users/login"); Navigate to dashboard
+        navigate("/dashboard");
       })
       .catch((error) => {
-        toast.error(error?.response?.data?.error);
+        toast.error(error?.response?.error || "Unable to Update Profile");
         reset();
       });
   };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+  const toggleCurrentPasswordVisibility = () => {
+    setShowCurrentPassword(!showCurrentPassword);
   };
 
   return (
@@ -63,12 +68,39 @@ function UpdateProfile() {
               )}
             </Form.Group>
 
+            <Form.Group controlId="currentPassword">
+              <Form.Label>Current Password</Form.Label>
+              <div className="d-flex">
+                <Form.Control
+                  type={showCurrentPassword ? "text" : "password"}
+                  placeholder="Enter Password"
+                  {...register("currentPassword", {
+                    required: "Current Password is required",
+                    validate: {
+                      validFormat: (value) =>
+                        isValidPasswordFormat(value) ||
+                        "Invalid password format",
+                    },
+                  })}
+                />
+                <Button
+                  variant="outline-secondary"
+                  onClick={toggleCurrentPasswordVisibility}
+                >
+                  {showCurrentPassword ? "Hide" : "Show"}
+                </Button>
+              </div>
+              {errors.password && (
+                <span className="text-danger">{errors.password.message}</span>
+              )}
+            </Form.Group>
+
             <Form.Group controlId="password">
               <Form.Label>Password</Form.Label>
               <div className="d-flex">
                 <Form.Control
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter Password"
+                  placeholder="Enter new Password"
                   {...register("password", {
                     required: "Password is required",
                     validate: {

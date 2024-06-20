@@ -1,18 +1,33 @@
-const { expenseServices } = require("../services");
+const { expenseServices, budgetServices } = require("../services");
 const mongoose = require("mongoose");
 
 const addExpense = async (req, res) => {
   try {
     const { date, amount, category_id, description } = req.body;
     if (!date || !amount || !category_id || !description)
-      return res.status(422).send({ error: "A field cant be empty!" });
+      return res.status(422).send({ error: "A field can't be empty!" });
     if (Math.floor(amount) <= 0)
       return res
         .status(422)
         .send({ error: "Amount should be a positive number!" });
 
+    // Budget's logic start
+    const [year, month] = date.split("-").map(Number);
+    const startOfMonth = new Date(Date.UTC(year, month - 1, 1));
+    const endOfMonth = new Date(Date.UTC(year, month, 0));
+    const budgetForMonth = await budgetServices.findBudget({
+      month: { $gte: startOfMonth, $lte: endOfMonth },
+    });
+
+    if (!budgetForMonth) {
+      return res
+        .status(441)
+        .send({ error: "Budget for entered month does not exist" });
+    }
+    // Budget Logic Ends here
+
     const savedExpense = await expenseServices.addExpense({
-      date: date,
+      date: new Date(date).toISOString(), // Convert date to UTC format
       amount: amount,
       user_id: req.userId,
       category_id: category_id,
@@ -48,10 +63,19 @@ const getExpenses = async (req, res) => {
       req.query.category_id
     );
   }
+
   if (startDate && endDate) {
-    matchCriteria.createdAt = {
-      $gte: new Date(startDate),
-      $lte: new Date(endDate),
+    matchCriteria.date = {
+      $gte: new Date(new Date(startDate).toISOString()),
+      $lte: new Date(new Date(endDate).toISOString()),
+    };
+  } else if (startDate) {
+    matchCriteria.date = {
+      $gte: new Date(new Date(startDate).toISOString()),
+    };
+  } else if (endDate) {
+    matchCriteria.date = {
+      $lte: new Date(new Date(endDate).toISOString()),
     };
   }
 
@@ -64,7 +88,7 @@ const getExpenses = async (req, res) => {
         $facet: {
           totalCount: [{ $count: "count" }],
           paginatedResults: [
-            { $sort: { createdAt: -1 } },
+            { $sort: { date: -1 } },
             { $skip: skip },
             { $limit: limit },
           ],
@@ -77,6 +101,7 @@ const getExpenses = async (req, res) => {
         },
       },
     ]);
+
     return res.status(200).json({
       data: {
         expenses: result[0]?.paginatedResults || [],
@@ -87,6 +112,30 @@ const getExpenses = async (req, res) => {
   } catch (e) {
     console.log(e);
     return res.status(500).send({ error: "Unable to retrieve Expenses." });
+  }
+};
+
+const getSingleExpense = async (req, res) => {
+  try {
+    const expenseId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(expenseId)) {
+      return res.status(400).send({ error: "Invalid expense ID." });
+    }
+
+    const expense = await expenseServices.findOneExpense({ _id: expenseId });
+
+    if (!expense) {
+      return res.status(404).send({ error: "Expense not found." });
+    }
+
+    return res.status(200).json({
+      data: expense,
+      message: `Expense details retrieved successfully`,
+    });
+  } catch (e) {
+    console.log(e);
+    return res.status(500).send({ error: "Unable to retrieve Expense." });
   }
 };
 
@@ -105,7 +154,7 @@ const updateExpense = async (req, res) => {
     const updatedExpense = await expenseServices.findAndUpdateExpense(
       { _id: new mongoose.Types.ObjectId(expenseID) },
       {
-        date: date,
+        date: new Date(date).toISOString(), // Convert date to UTC format
         amount: amount,
         category_id: category_id,
         description: description,
@@ -148,12 +197,13 @@ const deleteExpense = async (req, res) => {
     });
   } catch (e) {
     console.log(e);
-    return res.status(500).send({ error: "Error occoured at the server." });
+    return res.status(500).send({ error: "Error occurred at the server." });
   }
 };
 
 module.exports = {
   addExpense,
+  getSingleExpense,
   getExpenses,
   updateExpense,
   deleteExpense,

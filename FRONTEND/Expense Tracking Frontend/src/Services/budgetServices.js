@@ -5,9 +5,9 @@ import {
   authorizedPutCall,
 } from "./APIsServices";
 
-export const getBudgets = async () => {
+export const getBudgets = async (data) => {
   return new Promise((resolve, reject) => {
-    authorizedGetCall(`/budget`)
+    authorizedGetCall(`/budget?limit=${data.limit}&page=${data.page}`)
       .then((data) => {
         resolve(data);
       })

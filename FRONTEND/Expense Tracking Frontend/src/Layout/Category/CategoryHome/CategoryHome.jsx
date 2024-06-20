@@ -4,7 +4,8 @@ import { Spinner, Form, Button, Container, Row, Col } from "react-bootstrap";
 import Pagination from "@mui/material/Pagination";
 import { useNavigate } from "react-router";
 import { useSearchParams } from "react-router-dom";
-import CategoryItem from "../CategoryItem/CategoryItem"; // Ensure correct path to CategoryItem
+import CategoryItem from "../CategoryItem/CategoryItem";
+import { Table } from "react-bootstrap";
 
 function CategoryHome() {
   const navigate = useNavigate();
@@ -114,20 +115,23 @@ function CategoryHome() {
             <Container>
               <div className="container categories-card">
                 {spinner && <Spinner animation="border" />}
-                <ul className="list-group">
-                  {categories.map((category) => (
-                    <li
-                      key={category._id}
-                      className="list-group-item d-flex justify-content-between align-items-center"
-                    >
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Controls</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {categories.map((category) => (
                       <CategoryItem
                         name={category.name}
                         id={category._id}
                         updateRefresh={updateRefresh}
                       />
-                    </li>
-                  ))}
-                </ul>
+                    ))}
+                  </tbody>
+                </Table>
               </div>
             </Container>
           </Row>
