@@ -130,7 +130,7 @@ function Dashboard() {
               </tbody>
             </Table>
           </Col>
-          <Col>
+          <Col xs={12} sm={12} lg={4}>
           <h3 className="text-center mb-4">Line Chart</h3>
             <LineChart data={lineChartData} />
           </Col>
