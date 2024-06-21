@@ -202,29 +202,8 @@ async function getCumulativeExpenses(id, filterDate) {
   }
 }
 
-// const getCurrentMonthExpenses = async (id, filterDate) => {
-//   try {
-//     const startOfMonth = new Date(
-//       Date.UTC(filterDate.getFullYear(), filterDate.getMonth(), 1)
-//     );
-//     const endOfMonth = new Date(
-//       Date.UTC(filterDate.getFullYear(), filterDate.getMonth() + 1, 0)
-//     );
-
-//     const expenses = await Expense.find({
-//       user_id: id,
-//       date: { $gte: startOfMonth, $lte: endOfMonth },
-//     }).sort({ date: 1 });
-
-//     return expenses;
-//   } catch (error) {
-//     console.error("Error fetching current month expenses:", error);
-//     throw error;
-//   }
-// };
 module.exports = {
   getAnalytics,
   getCurrentMonthStatus,
   getCumulativeExpenses,
-  // getCurrentMonthExpenses,
 };
