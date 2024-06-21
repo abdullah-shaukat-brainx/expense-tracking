@@ -9,12 +9,12 @@ const addCategory = async (req, res) => {
 
     const category = await categoryServices.findCategory({
       user_id: new mongoose.Types.ObjectId(req.userId),
-      name: name,
+      name: name.toLowerCase(),
     });
     if (category)
       return res
         .status(400)
-        .send({ error: "Category with entered name already exisit!" });
+        .send({ error: "Category with entered name already exist!" });
 
     const savedCategory = await categoryServices.addCategory({
       name: name,
@@ -114,7 +114,7 @@ const updateCategory = async (req, res) => {
 
     const category = await categoryServices.findCategory({
       user_id: new mongoose.Types.ObjectId(req.userId),
-      name: name,
+      name: name.toLowerCase(),
     });
     if (category)
       return res

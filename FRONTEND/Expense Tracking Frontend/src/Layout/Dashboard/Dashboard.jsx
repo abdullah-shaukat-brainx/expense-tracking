@@ -124,7 +124,12 @@ function Dashboard() {
                 remainingAmount > 0 ? "text-success" : "text-danger"
               }`}
             >
-              Remaining Amount: {remainingAmount}
+              {/* condition ? true : false */}
+              {remainingAmount > 0
+                ? `Remaining Amount for Monthly Budget: ${remainingAmount}`
+                : `Monthly Budget exceeding by Amount: ${Math.abs(
+                    remainingAmount
+                  )}`}
             </p>
             <Pie data={data} />
           </Col>
