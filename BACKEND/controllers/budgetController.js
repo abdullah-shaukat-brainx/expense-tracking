@@ -97,50 +97,6 @@ const getBudgets = async (req, res) => {
   }
 };
 
-// const getBudgets = async (req, res) => {
-//   const page = parseInt(req?.query?.page) || 1;
-//   const limit = parseInt(req?.query?.limit) || 5;
-//   const skip = (page - 1) * limit;
-
-//   let matchCriteria = {
-//     user_id: new mongoose.Types.ObjectId(req.userId),
-//   };
-
-//   try {
-//     const result = await expenseServices.aggregateExpenseQuery([
-//       {
-//         $match: matchCriteria,
-//       },
-//       {
-//         $facet: {
-//           totalCount: [{ $count: "count" }],
-//           paginatedResults: [
-//             { $sort: { createdAt: -1 } },
-//             { $skip: skip },
-//             { $limit: limit },
-//           ],
-//         },
-//       },
-//       {
-//         $project: {
-//           totalCount: { $arrayElemAt: ["$totalCount.count", 0] },
-//           paginatedResults: 1,
-//         },
-//       },
-//     ]);
-//     return res.status(200).json({
-//       data: {
-//         budgets: result[0]?.paginatedResults || [],
-//         count: result[0]?.totalCount || 0,
-//       },
-//       message: `Budgets for ${req.userEmail} retrieved successfully`,
-//     });
-//   } catch (e) {
-//     console.log(e);
-//     return res.status(500).send({ error: "Unable to retrieve Budgets." });
-//   }
-// };
-
 const updateBudget = async (req, res) => {
   try {
     const budgetID = req.params.id;
@@ -161,7 +117,6 @@ const updateBudget = async (req, res) => {
     const updatedBudget = await budgetServices.findAndUpdateBudget(
       { _id: new mongoose.Types.ObjectId(budgetID) },
       {
-        // month: budgetDate,
         amount: amount,
       },
       { new: true }

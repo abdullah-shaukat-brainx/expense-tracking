@@ -112,6 +112,15 @@ const updateCategory = async (req, res) => {
     if (!categoryID || !name)
       return res.status(500).send({ error: "Category information missing." });
 
+    const category = await categoryServices.findCategory({
+      user_id: new mongoose.Types.ObjectId(req.userId),
+      name: name,
+    });
+    if (category)
+      return res
+        .status(400)
+        .send({ error: "Category with entered name already exisit!" });
+
     const updatedCategory = await categoryServices.findAndUpdateCategory(
       { _id: new mongoose.Types.ObjectId(categoryID) },
       { name: name },
