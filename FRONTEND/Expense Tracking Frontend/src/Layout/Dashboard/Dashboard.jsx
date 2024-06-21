@@ -25,7 +25,6 @@ function Dashboard() {
       setRemainingAmount(response?.data?.remainingAmount || 0);
       setMonthlyBudgetAmount(response?.data?.monthlyBudgetAmount || 0);
       setLineChartData(response?.data?.expenseAnalytics);
-      console.log("E_A:", response?.data?.expenseAnalytics); // Expense Analytics
     } catch (error) {
       console.error("Error fetching analytics:", error);
     } finally {
@@ -93,22 +92,22 @@ function Dashboard() {
         <h2>Nothing to show.</h2>
       ) : (
         <Row className="mt-5 justify-content-center">
+          <p className="text-center mt-2">
+            Total Budget Amount: {monthlyBudgetAmount}
+          </p>
+          <p
+            className={`text-center mt-2 ${
+              remainingAmount > 0 ? "text-success" : "text-danger"
+            }`}
+          >
+            {remainingAmount > 0
+              ? `Remaining Amount for Monthly Budget: ${remainingAmount}`
+              : `Monthly Budget exceeding by Amount: ${Math.abs(
+                  remainingAmount
+                )}`}
+          </p>
           <Col xs={12} sm={5} lg={3}>
             <h3 className="text-center mb-4">Analytics</h3>
-            <p className="text-center mt-4">
-              Total Budget Amount: {monthlyBudgetAmount}
-            </p>
-            <p
-              className={`text-center mt-4 ${
-                remainingAmount > 0 ? "text-success" : "text-danger"
-              }`}
-            >
-              {remainingAmount > 0
-                ? `Remaining Amount for Monthly Budget: ${remainingAmount}`
-                : `Monthly Budget exceeding by Amount: ${Math.abs(
-                    remainingAmount
-                  )}`}
-            </p>
             <PieChart data={analytics} />
           </Col>
           <Col xs={12} sm={7} lg={5}>
@@ -131,7 +130,7 @@ function Dashboard() {
             </Table>
           </Col>
           <Col xs={12} sm={12} lg={4}>
-          <h3 className="text-center mb-4">Line Chart</h3>
+            <h3 className="text-center mb-4">Line Chart</h3>
             <LineChart data={lineChartData} />
           </Col>
         </Row>
