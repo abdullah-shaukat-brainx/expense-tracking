@@ -106,7 +106,7 @@ function Dashboard() {
                   remainingAmount
                 )}`}
           </p>
-          <Col xs={12} sm={5} lg={3}>
+          <Col xs={8} sm={5} lg={3}>
             <h3 className="text-center mb-4">Analytics</h3>
             <PieChart data={analytics} />
           </Col>
