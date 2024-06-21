@@ -90,7 +90,7 @@ const getCurrentMonthStatus = async (id, filterDate) => {
   }
 };
 
-const getCurrentMonthExpenses = async (id, filterDate) => {
+async function getCumulativeExpenses(id, filterDate) {
   try {
     const startOfMonth = new Date(
       Date.UTC(filterDate.getFullYear(), filterDate.getMonth(), 1)
@@ -99,19 +99,132 @@ const getCurrentMonthExpenses = async (id, filterDate) => {
       Date.UTC(filterDate.getFullYear(), filterDate.getMonth() + 1, 0)
     );
 
-    const expenses = await Expense.find({
-      user_id: id,
-      date: { $gte: startOfMonth, $lte: endOfMonth },
-    }).sort({ date: 1 });
+    // Calculate the number of days in the month
+    const daysInMonth = endOfMonth.getUTCDate();
+
+    const expenses = await Expense.aggregate([
+      {
+        $match: {
+          user_id: new mongoose.Types.ObjectId(id),
+          date: { $gte: startOfMonth, $lte: endOfMonth },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            day: { $dayOfMonth: "$date" },
+            month: { $month: "$date" },
+            year: { $year: "$date" },
+          },
+          totalAmount: { $sum: "$amount" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          date: {
+            $dateFromParts: {
+              year: "$_id.year",
+              month: "$_id.month",
+              day: "$_id.day",
+            },
+          },
+          totalAmount: 1,
+        },
+      },
+      {
+        $sort: { date: 1 },
+      },
+      {
+        $group: {
+          _id: null,
+          dailyExpenses: {
+            $push: {
+              date: "$date",
+              totalAmount: "$totalAmount",
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          allDates: Array.from({ length: daysInMonth }, (_, i) => ({
+            date: new Date(Date.UTC(filterDate.getFullYear(), filterDate.getMonth(), i + 1)),
+            totalAmount: 0,
+          })),
+        },
+      },
+      {
+        $project: {
+          dailyExpenses: {
+            $concatArrays: ["$dailyExpenses", "$allDates"],
+          },
+        },
+      },
+      {
+        $unwind: "$dailyExpenses",
+      },
+      {
+        $group: {
+          _id: "$dailyExpenses.date",
+          totalAmount: { $sum: "$dailyExpenses.totalAmount" },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+      {
+        $setWindowFields: {
+          sortBy: { _id: 1 },
+          output: {
+            cumulativeAmount: {
+              $sum: "$totalAmount",
+              window: {
+                documents: ["unbounded", "current"],
+              },
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          date: "$_id",
+          cumulativeAmount: 1,
+        },
+      },
+    ]);
 
     return expenses;
   } catch (error) {
-    console.error("Error fetching current month expenses:", error);
+    console.error("Error retrieving cumulative expenses:", error);
     throw error;
   }
-};
+}
+
+// const getCurrentMonthExpenses = async (id, filterDate) => {
+//   try {
+//     const startOfMonth = new Date(
+//       Date.UTC(filterDate.getFullYear(), filterDate.getMonth(), 1)
+//     );
+//     const endOfMonth = new Date(
+//       Date.UTC(filterDate.getFullYear(), filterDate.getMonth() + 1, 0)
+//     );
+
+//     const expenses = await Expense.find({
+//       user_id: id,
+//       date: { $gte: startOfMonth, $lte: endOfMonth },
+//     }).sort({ date: 1 });
+
+//     return expenses;
+//   } catch (error) {
+//     console.error("Error fetching current month expenses:", error);
+//     throw error;
+//   }
+// };
 module.exports = {
   getAnalytics,
   getCurrentMonthStatus,
-  getCurrentMonthExpenses,
+  getCumulativeExpenses,
+  // getCurrentMonthExpenses,
 };

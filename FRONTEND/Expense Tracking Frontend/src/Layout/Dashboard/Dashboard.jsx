@@ -1,13 +1,13 @@
+// Dashboard.js
 import React, { useEffect, useState } from "react";
 import { Spinner, Container, Row, Col, Table, Form } from "react-bootstrap";
 import { getDashboardAnalytics } from "../../Services/dashboardServices";
-import { Pie } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-
-ChartJS.register(ArcElement, Tooltip, Legend);
+import LineChart from "./LineChart";
+import PieChart from "./PieChart";
 
 function Dashboard() {
   const [analytics, setAnalytics] = useState([]);
+  const [lineChartData, setLineChartData] = useState([]);
   const [remainingAmount, setRemainingAmount] = useState(0);
   const [monthlyBudgetAmount, setMonthlyBudgetAmount] = useState(0);
   const [spinner, setSpinner] = useState(true);
@@ -24,7 +24,8 @@ function Dashboard() {
       setAnalytics(response?.data?.analytics || []);
       setRemainingAmount(response?.data?.remainingAmount || 0);
       setMonthlyBudgetAmount(response?.data?.monthlyBudgetAmount || 0);
-      console.log("E_A:", response?.data?.expenseAnalytics); //Expense Analytics
+      setLineChartData(response?.data?.expenseAnalytics);
+      console.log("E_A:", response?.data?.expenseAnalytics); // Expense Analytics
     } catch (error) {
       console.error("Error fetching analytics:", error);
     } finally {
@@ -35,26 +36,6 @@ function Dashboard() {
   useEffect(() => {
     fetchAnalytics();
   }, [month, year]);
-
-  const data = {
-    labels: analytics.map((item) => item.categoryName),
-    datasets: [
-      {
-        label: "Amount",
-        data: analytics.map((item) => item.totalAmount),
-        backgroundColor: [
-          "rgba(255, 99, 132, 0.2)",
-          "rgba(54, 162, 235, 0.2)",
-          "rgba(255, 206, 86, 0.2)",
-          "rgba(75, 192, 192, 0.2)",
-          "rgba(153, 102, 255, 0.2)",
-          "rgba(255, 159, 64, 0.2)",
-        ],
-        borderColor: ["rgba(0, 0, 0, 1)"],
-        borderWidth: 1,
-      },
-    ],
-  };
 
   return (
     <Container fluid className="mt-5">
@@ -77,7 +58,6 @@ function Dashboard() {
                   value={month}
                   onChange={handleMonthChange}
                 >
-                  {/* <option value="">Select Month</option> */}
                   {Array.from({ length: 12 }, (_, i) => (
                     <option key={i + 1} value={i + 1}>
                       {new Date(0, i + 1, 0).toLocaleString("default", {
@@ -94,7 +74,6 @@ function Dashboard() {
                   value={year}
                   onChange={handleYearChange}
                 >
-                  {/* <option value="">Select Year</option> */}
                   {Array.from({ length: 10 }, (_, i) => (
                     <option key={i} value={new Date().getFullYear() - i}>
                       {new Date().getFullYear() - i}
@@ -124,14 +103,13 @@ function Dashboard() {
                 remainingAmount > 0 ? "text-success" : "text-danger"
               }`}
             >
-              {/* condition ? true : false */}
               {remainingAmount > 0
                 ? `Remaining Amount for Monthly Budget: ${remainingAmount}`
                 : `Monthly Budget exceeding by Amount: ${Math.abs(
                     remainingAmount
                   )}`}
             </p>
-            <Pie data={data} />
+            <PieChart data={analytics} />
           </Col>
           <Col xs={12} sm={7} lg={5}>
             <h3 className="text-center mb-4">Category-wise Amount</h3>
@@ -151,6 +129,10 @@ function Dashboard() {
                 ))}
               </tbody>
             </Table>
+          </Col>
+          <Col>
+          <h3 className="text-center mb-4">Line Chart</h3>
+            <LineChart data={lineChartData} />
           </Col>
         </Row>
       )}

@@ -24,7 +24,7 @@ const getAnalytics = async (req, res) => {
       filterDate
     );
 
-    const expenseAnalytics = await dashboardServices.getCurrentMonthExpenses(
+    const expenseAnalytics = await dashboardServices.getCumulativeExpenses(
       req.userId,
       filterDate
     );
