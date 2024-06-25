@@ -1,57 +1,51 @@
 import React, { useEffect, useState } from "react";
-import { getCategories } from "../../../Services/categoryServices";
+import {
+  fetchCategories,
+  selectFilteredCategories,
+  getCategoriesStatus,
+  getTotalPagesCount,
+} from "../../../Reducers/categories/categorySlice";
 import { Spinner, Form, Button, Container, Row, Col } from "react-bootstrap";
 import Pagination from "@mui/material/Pagination";
-import { useNavigate } from "react-router";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import CategoryItem from "../CategoryItem/CategoryItem";
 import { Table } from "react-bootstrap";
 import { useDebounce } from "../../../Utils";
+import { useDispatch, useSelector } from "react-redux";
 
 function CategoryHome() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [spinner, setSpinner] = useState(false);
-  const [categories, setCategories] = useState([]);
+  const categories = useSelector(selectFilteredCategories);
+  const categoryStatus = useSelector(getCategoriesStatus);
+  const totalPagesCount = useSelector(getTotalPagesCount);
   const [searchQuery, setSearchQuery] = useState("");
-  const [totalPagesCount, setTotalPagesCount] = useState(1);
-  const [refresh, setRefresh] = useState(false);
-  const updateRefresh = () => {
-    setRefresh(!refresh);
-  };
-
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(searchParams?.get("page")) || 1
+  );
+  const [limit, setLimit] = useState(parseInt(searchParams?.get("limit")) || 5);
 
   const handleChange = (e) => {
     setSearchQuery(e.target.value);
     setCurrentPage(1);
   };
 
-  const [currentPage, setCurrentPage] = useState(
-    parseInt(searchParams?.get("page")) || 1
-  );
-  const [limit, setLimit] = useState(parseInt(searchParams?.get("limit")) || 5);
-
-  const fetchCategories = async (page, limit) => {
-    setSpinner(true);
-    try {
-      const response = await getCategories({
+  const fetchFilteredCategories = () => {
+    dispatch(
+      fetchCategories({
         searchQuery: searchQuery.trim(),
-        page: page,
-        limit: limit,
-      });
-      setTotalPagesCount(parseInt(response?.data?.count));
-      setCategories(response?.data?.Categories);
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    } finally {
-      setSpinner(false);
-    }
+        page: currentPage,
+        limit,
+      })
+    );
   };
 
   useEffect(() => {
-    fetchCategories(currentPage, limit);
-  }, [debouncedSearchQuery, currentPage, limit, searchParams, refresh]);
+    fetchFilteredCategories();
+  }, [debouncedSearchQuery, currentPage, limit, searchParams]);
 
   useEffect(() => {
     setSearchParams({ page: currentPage, limit: limit });
@@ -92,7 +86,11 @@ function CategoryHome() {
           </Form.Group>
         </Col>
       </Row>
-      {categories.length === 0 ? (
+      {categoryStatus === "loading" ? (
+        <Spinner animation="border" />
+      ) : categoryStatus === "failed" ? (
+        <h2>Error fetching categories.</h2>
+      ) : categories.length === 0 ? (
         <h2>No categories to show.</h2>
       ) : (
         <>
@@ -110,9 +108,10 @@ function CategoryHome() {
                   <tbody>
                     {categories.map((category) => (
                       <CategoryItem
+                        key={category._id} // Ensure to have a unique key for each item
                         name={category.name}
                         id={category._id}
-                        updateRefresh={updateRefresh}
+                        // updateRefresh={updateRefresh}
                       />
                     ))}
                   </tbody>

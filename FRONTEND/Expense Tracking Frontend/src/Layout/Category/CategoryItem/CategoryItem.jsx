@@ -4,11 +4,13 @@ import { confirmAlert } from "react-confirm-alert";
 import { toast } from "react-toastify";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import "react-toastify/dist/ReactToastify.css";
-import { deleteCategory } from "../../../Services/categoryServices";
+import { deleteCategory } from "../../../Reducers/categories/categorySlice";
 import "./CategoryItem.css";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 
-function CategoryItem({ name, id, updateRefresh }) {
+function CategoryItem({ name, id }) {
+  const dispatch = useDispatch();
   const options = {
     title: "Delete Category",
     message: "Are you sure you want to delete this category?",
@@ -17,11 +19,13 @@ function CategoryItem({ name, id, updateRefresh }) {
         label: "Yes",
         onClick: async () => {
           try {
-            await deleteCategory(id);
-            toast.success("Category Deleted.");
-            updateRefresh();
+            const response = dispatch(deleteCategory({ id }));
+            if (response.error) toast.error("An error occoured!");
+            else {
+              toast.success("Category deleted successfully!");
+            }
           } catch (error) {
-            toast.error("Failed to delete category.");
+            toast.error("Unexpected error occoured.");
           }
         },
       },

@@ -3,8 +3,12 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import { addExpense } from "../../../Services/expenseServices";
-import { getAllCategories } from "../../../Services/categoryServices";
+import {
+  selectAllCategories,
+  fetchAllCategories,
+} from "../../../Reducers/categories/categorySlice";
 import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 
 function CreateExpense() {
   const {
@@ -14,27 +18,19 @@ function CreateExpense() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      date: new Date().toISOString().split('T')[0], // Set default date to today's date
+      date: new Date().toISOString().split("T")[0], // Set default date to today's date
       amount: "",
       description: "",
       category_id: "",
     },
   });
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
+  const dispatch = useDispatch();
+  const categories = useSelector(selectAllCategories);
 
   useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const response = await getAllCategories();
-        setCategories(response?.data?.Categories);
-      } catch (error) {
-        toast.error("Error fetching categories.");
-      }
-    }
-
-    fetchCategories();
-  }, []);
+    dispatch(fetchAllCategories());
+  }, [dispatch]);
 
   const onSubmit = (data) => {
     addExpense(data)
@@ -99,7 +95,12 @@ function CreateExpense() {
 
             <Form.Group controlId="category_id" className="mt-3">
               <Form.Label>Category</Form.Label>
-              <Form.Control as="select" {...register("category_id", { required: "Category is required" })}>
+              <Form.Control
+                as="select"
+                {...register("category_id", {
+                  required: "Category is required",
+                })}
+              >
                 <option value="">Select Category</option>
                 {categories.map((category) => (
                   <option key={category._id} value={category._id}>
@@ -108,7 +109,9 @@ function CreateExpense() {
                 ))}
               </Form.Control>
               {errors.category_id && (
-                <span className="text-danger">{errors.category_id.message}</span>
+                <span className="text-danger">
+                  {errors.category_id.message}
+                </span>
               )}
             </Form.Group>
 

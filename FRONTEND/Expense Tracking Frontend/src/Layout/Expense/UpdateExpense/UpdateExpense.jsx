@@ -6,12 +6,14 @@ import {
   updateExpense,
   getOneExpenseDetails,
 } from "../../../Services/expenseServices";
-import { getAllCategories } from "../../../Services/categoryServices";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchAllCategories, selectAllCategories } from "../../../Reducers/categories/categorySlice";
 import { useNavigate } from "react-router-dom";
 
 function UpdateExpense() {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
+  const dispatch = useDispatch();
+  const categories = useSelector(selectAllCategories);
   const {
     handleSubmit,
     register,
@@ -19,6 +21,10 @@ function UpdateExpense() {
     formState: { errors },
     setValue,
   } = useForm();
+
+  useEffect(() => {
+    dispatch(fetchAllCategories());
+  }, [dispatch]);
 
   useEffect(() => {
     async function fetchExpenseDetails(id) {
@@ -43,19 +49,6 @@ function UpdateExpense() {
     }
   }, [setValue]);
 
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const response = await getAllCategories();
-        setCategories(response?.data?.Categories || []);
-      } catch (error) {
-        toast.error("Error fetching categories.");
-      }
-    }
-
-    fetchCategories();
-  }, []);
-
   const onSubmit = (data) => {
     const id = new URLSearchParams(window.location.search).get("id");
     if (!id) {
@@ -63,7 +56,7 @@ function UpdateExpense() {
       return;
     }
 
-    data.id = id; //injecting expense id into data
+    data.id = id; // Injecting expense id into data
     updateExpense(data)
       .then((response) => {
         toast.success("Expense updated successfully.");

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { getExpenses } from "../../../Services/expenseServices";
-import { getAllCategories } from "../../../Services/categoryServices";
 import { Spinner, Form, Button, Container, Row, Col } from "react-bootstrap";
 import Pagination from "@mui/material/Pagination";
 import { useNavigate } from "react-router";
@@ -9,6 +8,11 @@ import ExpenseItem from "../ExpenseItem/ExpenseItem";
 import { Table } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { useDebounce } from "../../../Utils";
+import {
+  fetchAllCategories,
+  selectAllCategories,
+} from "../../../Reducers/categories/categorySlice";
+import { useSelector, useDispatch } from "react-redux";
 
 function getFirstDateOfMonth() {
   const currentDate = new Date();
@@ -29,7 +33,9 @@ function ExpenseHome() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [spinner, setSpinner] = useState(false);
   const [expenses, setExpenses] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const categories = useSelector(selectAllCategories);
+  const dispatch = useDispatch(); // Redux dispatch hook
+
   const [selectedCategory, setSelectedCategory] = useState("");
   const [startDate, setStartDate] = useState(getFirstDateOfMonth());
   const [endDate, setEndDate] = useState(getLastDateOfMonth());
@@ -93,10 +99,9 @@ function ExpenseHome() {
     }
   };
 
-  const fetchCategories = async () => {
+  const fetchCategories = () => {
     try {
-      const response = await getAllCategories();
-      setCategories(response?.data?.Categories || []);
+      dispatch(fetchAllCategories());
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
