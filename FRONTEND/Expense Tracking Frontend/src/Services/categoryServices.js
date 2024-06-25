@@ -21,9 +21,7 @@ export const getCategories = async (data) => {
 
 export const getAllCategories = async (data) => {
   return new Promise((resolve, reject) => {
-    authorizedGetCall(
-      `/category/get_all_categories`
-    )
+    authorizedGetCall(`/category/get_all_categories`)
       .then((data) => {
         resolve(data);
       })
@@ -45,8 +43,9 @@ export const addCategory = async (data) => {
   });
 };
 
-export const deleteCategory = async (id) => {
+export const deleteCategory = async (data) => {
   return new Promise((resolve, reject) => {
+    const { id } = data;
     authorizedDeleteCall(`/category/${id}`)
       .then((data) => {
         resolve(data);
@@ -57,8 +56,9 @@ export const deleteCategory = async (id) => {
   });
 };
 
-export const updateCategory = async (id, name) => {
+export const updateCategory = async (data) => {
   return new Promise((resolve, reject) => {
+    const { id, name } = data;
     authorizedPutCall(`/category/${id}`, { name })
       .then((data) => {
         resolve(data);

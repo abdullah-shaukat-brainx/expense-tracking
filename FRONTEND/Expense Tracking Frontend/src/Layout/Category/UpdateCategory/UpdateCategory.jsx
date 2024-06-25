@@ -2,7 +2,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { updateCategory } from "../../../Services/categoryServices";
+import { updateCategory } from "../../../Reducers/categories/categorySlice";
+import { useDispatch } from "react-redux";
 
 function UpdateCategory() {
   const [searchParams] = useSearchParams();
@@ -21,14 +22,17 @@ function UpdateCategory() {
     },
   });
 
+  const dispatch = useDispatch();
   const onSubmit = (data) => {
-    updateCategory(id, data.name)
+    dispatch(updateCategory({ id, name: data.name }))
       .then((response) => {
-        toast.success("Category updated successfully.");
+        if (response.categoriesError) toast.error("An error occoured!");
+        else toast.success("Category successfully updated.");
         navigate("/category");
       })
       .catch((error) => {
-        toast.error(error?.response?.data?.error || "An error occurred.");
+        console.log(error);
+        toast.error("Unexpected error occoured.");
         reset();
       });
   };

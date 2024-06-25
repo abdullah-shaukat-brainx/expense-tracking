@@ -1,7 +1,8 @@
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
-import { addCategory } from "../../../Services/categoryServices";
+import { createCategory } from "../../../Reducers/categories/categorySlice";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 function CreateCategory() {
@@ -15,15 +16,18 @@ function CreateCategory() {
       name: "",
     },
   });
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const onSubmit = (data) => {
-    addCategory({ name: data.name })
+    dispatch(createCategory({ name: data.name }))
       .then((response) => {
-        toast.success("Category added successfully.");
+        if (response.error) {
+          toast.error("An error occoured!");
+        } else toast.success("Category added successfully.");
         navigate("/category");
       })
       .catch((error) => {
-        toast.error(error?.response?.data?.error || "An error occurred.");
+        toast.error("Unexpected error occoured.");
         reset();
       });
   };
