@@ -20,10 +20,15 @@ const findAndDeleteBudget = async (condition) => {
   return budget;
 };
 
+const aggregateBudgetQuery = async (query) => {
+  return await Budget.aggregate(query);
+};
+
 module.exports = {
   addBudget,
   findBudget,
   findAllBudgets,
   findAndUpdateBudget,
   findAndDeleteBudget,
+  aggregateBudgetQuery,
 };

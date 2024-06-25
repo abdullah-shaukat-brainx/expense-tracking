@@ -1,12 +1,12 @@
 import React from "react";
-import { Button, Col, Row } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import { confirmAlert } from "react-confirm-alert";
 import { toast } from "react-toastify";
+import { deleteExpense } from "../../../Services/expenseServices";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import "react-toastify/dist/ReactToastify.css";
-import { deleteExpense } from "../../../Services/expenseServices";
-import "./ExpenseItem.css";
 import { useNavigate } from "react-router-dom";
+import moment from "moment";
 
 function ExpenseItem({
   date,
@@ -51,27 +51,24 @@ function ExpenseItem({
 
   const navigate = useNavigate();
   const handleUpdate = () => {
-    navigate(
-      `/expense/update_expense?id=${id}&date=${date}&amount=${amount}&description=${description}&category_name=${category_name}`
-    );
+    navigate(`/expense/update_expense?id=${id}`);
   };
-
   return (
-    <Row className="border p-3 mb-3">
-      <Col xs={12} md={3}>
-        <span>{date}</span>
-      </Col>
-      <Col xs={12} md={2}>
-        <span>{amount}</span>
-      </Col>
-      <Col xs={12} md={2}>
-        <span>{description}</span>
-      </Col>
-      <Col xs={12} md={3}>
-        <span>{category_name}</span>
-      </Col>
-      <Col xs={12} md={2} className="mt-3 mt-lg-0">
-        <div className="controls d-flex justify-content-end">
+    <>
+      <tr>
+        <td>
+          <span>{moment(date).format("D MMMM YYYY")}</span>
+        </td>
+        <td>
+          <span>{amount}</span>
+        </td>
+        <td>
+          <span>{description}</span>
+        </td>
+        <td>
+          <span>{category_name}</span>
+        </td>
+        <td>
           <Button
             variant="danger"
             size="sm"
@@ -83,9 +80,9 @@ function ExpenseItem({
           <Button variant="warning" size="sm" onClick={handleUpdate}>
             <i className="bi bi-pencil"></i>
           </Button>
-        </div>
-      </Col>
-    </Row>
+        </td>
+      </tr>
+    </>
   );
 }
 

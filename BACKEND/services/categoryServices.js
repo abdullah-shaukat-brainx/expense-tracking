@@ -21,11 +21,12 @@ const findAndUpdateCategory = async (condition, data) => {
 };
 
 const findAndDeleteCategory = async (condition) => {
-  const category = await Category.findById(condition);
-  if (category) {
-    await category.remove();
-  }
-  return category;
+  // const category = await Category.findById(condition);
+  // if (category) {
+  //   await category.remove();
+  // }
+  // return category;
+  return await Category.findOneAndUpdate(condition, { is_deleted: true });
 };
 
 const aggregateCategoryQuery = async (query) => {

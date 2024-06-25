@@ -50,9 +50,14 @@ export const resetPassword = async (token, newPassword) => {
   });
 };
 
-export const updateProfile = async (name, password) => {
+export const updateProfile = async (data) => {
+  const { name, currentPassword, password } = data;
   return new Promise((resolve, reject) => {
-    authorizedPutCall("/users/update_profile", { name, password })
+    authorizedPutCall("/users/update_profile", {
+      name,
+      currentPassword,
+      password,
+    })
       .then((data) => {
         resolve(data);
       })

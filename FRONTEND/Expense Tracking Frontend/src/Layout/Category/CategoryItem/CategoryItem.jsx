@@ -48,16 +48,24 @@ function CategoryItem({ name, id, updateRefresh }) {
 
   return (
     <>
-      <span>{name}</span>
-      <div className="controls ms-auto">
-        <Button variant="danger" className="btn-sm me-2" onClick={handleDelete}>
-          <i className="bi bi-trash"></i>
-        </Button>
+      <tr>
+        <td>
+          <span>{name}</span>
+        </td>
+        <td>
+          <Button
+            variant="danger"
+            className="btn-sm me-2"
+            onClick={handleDelete}
+          >
+            <i className="bi bi-trash"></i>
+          </Button>
 
-        <Button variant="warning" className="btn-sm" onClick={handleUpdate}>
-          <i className="bi bi-pencil"></i>
-        </Button>
-      </div>
+          <Button variant="warning" className="btn-sm" onClick={handleUpdate}>
+            <i className="bi bi-pencil"></i>
+          </Button>
+        </td>
+      </tr>
     </>
   );
 }

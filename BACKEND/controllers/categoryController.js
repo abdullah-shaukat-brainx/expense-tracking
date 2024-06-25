@@ -7,11 +7,14 @@ const addCategory = async (req, res) => {
     if (!name)
       return res.status(422).send({ error: "Name field cant be empty!" });
 
-    const category = await categoryServices.findCategory({ name: name });
+    const category = await categoryServices.findCategory({
+      user_id: new mongoose.Types.ObjectId(req.userId),
+      name: name.toLowerCase(),
+    });
     if (category)
       return res
         .status(400)
-        .send({ error: "Category with entered name already exisit!" });
+        .send({ error: "Category with entered name already exist!" });
 
     const savedCategory = await categoryServices.addCategory({
       name: name,
@@ -35,6 +38,7 @@ const getAllCategories = async (req, res) => {
   try {
     const result = await categoryServices.findCategories({
       user_id: new mongoose.Types.ObjectId(req.userId),
+      is_deleted: false,
     });
 
     return res.status(200).json({
@@ -49,7 +53,8 @@ const getAllCategories = async (req, res) => {
   }
 };
 
-const getCategories = async (req, res) => { //Move large query to Srvices
+const getCategories = async (req, res) => {
+  //Move large query to Services
   const page = parseInt(req?.query?.page) || 1;
   const limit = parseInt(req?.query?.limit) || 5;
   const skip = (page - 1) * limit;
@@ -57,6 +62,7 @@ const getCategories = async (req, res) => { //Move large query to Srvices
     const result = await categoryServices.aggregateCategoryQuery([
       {
         $match: {
+          is_deleted: false,
           user_id: new mongoose.Types.ObjectId(req.userId),
           ...(req?.query?.searchQuery && {
             name: { $regex: req.query.searchQuery, $options: "i" },
@@ -105,6 +111,15 @@ const updateCategory = async (req, res) => {
 
     if (!categoryID || !name)
       return res.status(500).send({ error: "Category information missing." });
+
+    const category = await categoryServices.findCategory({
+      user_id: new mongoose.Types.ObjectId(req.userId),
+      name: name.toLowerCase(),
+    });
+    if (category)
+      return res
+        .status(400)
+        .send({ error: "Category with entered name already exisit!" });
 
     const updatedCategory = await categoryServices.findAndUpdateCategory(
       { _id: new mongoose.Types.ObjectId(categoryID) },

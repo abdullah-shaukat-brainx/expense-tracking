@@ -1,40 +1,53 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
-import { updateExpense } from "../../../Services/expenseServices";
+import {
+  updateExpense,
+  getOneExpenseDetails,
+} from "../../../Services/expenseServices";
 import { getAllCategories } from "../../../Services/categoryServices";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function UpdateExpense() {
-  const [searchParams] = useSearchParams();
-  const id = searchParams.get("id");
-  const dateParam = searchParams.get("date");
-  const amountParam = searchParams.get("amount");
-  const descriptionParam = searchParams.get("description");
-  const categoryParam = searchParams.get("category_id");
-
+  const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
   const {
     handleSubmit,
     register,
     reset,
     formState: { errors },
-  } = useForm({
-    defaultValues: {
-      date: dateParam || new Date().toISOString().split("T")[0], // Set default date to today's date
-      amount: amountParam || "",
-      description: descriptionParam || "",
-      category_id: categoryParam || "",
-    },
-  });
-  const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
+    setValue,
+  } = useForm();
+
+  useEffect(() => {
+    async function fetchExpenseDetails(id) {
+      try {
+        const response = await getOneExpenseDetails({ id });
+        const { date, amount, description, category_id } = response?.data[0];
+        const formattedDate = new Date(date).toISOString().split("T")[0];
+        setValue("date", formattedDate);
+        setValue("amount", amount);
+        setValue("description", description);
+        setValue("category_id", category_id);
+      } catch (error) {
+        toast.error("Error fetching expense details.");
+      }
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+
+    if (id) {
+      fetchExpenseDetails(id);
+    }
+  }, [setValue]);
 
   useEffect(() => {
     async function fetchCategories() {
       try {
         const response = await getAllCategories();
-        setCategories(response?.data?.Categories);
+        setCategories(response?.data?.Categories || []);
       } catch (error) {
         toast.error("Error fetching categories.");
       }
@@ -44,6 +57,12 @@ function UpdateExpense() {
   }, []);
 
   const onSubmit = (data) => {
+    const id = new URLSearchParams(window.location.search).get("id");
+    if (!id) {
+      toast.error("Expense ID is missing.");
+      return;
+    }
+
     data.id = id; //injecting expense id into data
     updateExpense(data)
       .then((response) => {

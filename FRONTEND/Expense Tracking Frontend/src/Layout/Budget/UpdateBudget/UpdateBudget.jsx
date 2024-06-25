@@ -115,6 +115,8 @@ function UpdateBudget() {
                 placeholder="Enter Amount"
                 {...register("amount", {
                   required: "Amount is required",
+                  validate: (value) =>
+                    value > 0 || "Amount must be greater than zero",
                 })}
               />
               {errors.amount && (

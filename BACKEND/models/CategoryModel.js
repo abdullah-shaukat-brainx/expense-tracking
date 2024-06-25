@@ -11,6 +11,10 @@ const categorySchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    is_deleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -19,12 +23,23 @@ const categorySchema = new mongoose.Schema(
 
 categorySchema.set("timestamps", { createdAt: true, updatedAt: true });
 
-categorySchema.pre('remove', async function (next) {
+categorySchema.pre("save", async function (next) {
   try {
-    await Expense.deleteMany({ category_id: this._id }); //Remove all related expenses
+    this.name = this.name.toLowerCase();
     next();
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
+  }
+});
+
+categorySchema.pre("findOneAndUpdate", async function (next) {
+  try {
+    if (this._update.name) {
+      this._update.name = this._update.name.toLowerCase();
+    }
+    next();
+  } catch (error) {
+    next(error);
   }
 });
 

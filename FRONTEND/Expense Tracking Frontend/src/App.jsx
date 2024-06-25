@@ -23,6 +23,7 @@ import UpdateExpense from "./Layout/Expense/UpdateExpense/UpdateExpense";
 import CreateBudget from "./Layout/Budget/CreateBudget/CreateBudget";
 import BudgetHome from "./Layout/Budget/BudgetHome/BudgetHome";
 import UpdateBudget from "./Layout/Budget/UpdateBudget/UpdateBudget";
+import Dashboard from "./Layout/Dashboard/Dashboard";
 
 const PrivateRoute = ({ children }) => {
   return isAuthenticated() ? children : <Navigate to="/users/login" />;
@@ -134,6 +135,14 @@ const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <UpdateBudget />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/dashboard",
+        element: (
+          <PrivateRoute>
+            <Dashboard />
           </PrivateRoute>
         ),
       },
